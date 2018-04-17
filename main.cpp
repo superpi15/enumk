@@ -65,13 +65,16 @@ void Write( int dim, std::ostream& ostr, std::vector<int>& Output ){
 	}
 }
 
-int main(){
-	size_t size = 4;
+int main( int argc, char * argv[]){
+	size_t dim = 2;
+	size_t size = 1<<2;
 	size_t comb = 1<<size;
 	std::vector<int> domain(size);
 	for( int i=0; i<size; i++ )
 		domain[i] = i;
-
+	char * fprefix = NULL;
+	if( argc>1 )
+		fprefix = argv[1];
 	int count = 0;
 	std::reverse( domain.begin(), domain.end() );
 	do {
@@ -87,6 +90,43 @@ int main(){
 			Output = domain;
 			ForceMap( CareSet, Output );
 			//std::cout<< count<< "_"<< i<<std::endl;
+
+			//std::cout << (fname +".cmp").c_str()<<std::endl;
+			if( fprefix ){
+				std::string fname;
+				fname = fprefix;
+				fname+= "/";
+				fname+= mpz_class(count).get_str(10) + "_";
+				fname+= mpz_class(i).get_str(10);
+
+				std::fstream ostr1( (fname+".cmp").c_str()
+					, std::ios::out );
+				ostr1 << dim<<" 2"<<std::endl;
+				for( int k=0; k<Output.size(); k++ ){
+					ostr1.fill('0');
+					ostr1.width(dim);
+					ostr1 << mpz_class(k).get_str(2) <<" ";
+					ostr1.fill('0');
+					ostr1.width(dim);
+					ostr1 << mpz_class(Output[k]).get_str(2)<<std::endl;
+				}
+				ostr1.close();
+
+				std::fstream ostr2( (fname+".incmp").c_str()
+					, std::ios::out );
+				ostr2 << dim<<" 2"<<std::endl;
+				for( int k=0; k<Output.size(); k++ ){
+					if( !CareSet[k] )
+						continue;
+					ostr2.fill('0');
+					ostr2.width(dim);
+					ostr2 << mpz_class(k).get_str(2) <<" ";
+					ostr2.fill('0');
+					ostr2.width(dim);
+					ostr2 << mpz_class(Output[k]).get_str(2) <<std::endl;
+				}
+				ostr2.close();
+			}
 		}
 	} while( std::prev_permutation( domain.begin(), domain.end() ) );
 	std::cout << "count="<<count<<std::endl;
